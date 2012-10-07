@@ -4,6 +4,9 @@
 extern char myIP[16];
 extern pthread_mutex_t node_list_mutex;
 //Iterate over IPs file and get the topology
+
+
+
 RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
 
 	FILE *fp = NULL;
@@ -116,17 +119,19 @@ RC_t getTopologyFromSomeNode() {
 }
 
 struct Head_Node *server_topology;	
+int listenSocket = 0;
 
 int main() {
 
-	int listenSocket, connectSocket, socketFlags, ret, clientSize;
+	int  listenSocket, connectSocket, socketFlags, ret, clientSize;
 	struct sockaddr_in myAddress, clientAddress;
 	int i,j, bytes, numBytes, pid;
+
 	server_topology = NULL;
         strcpy(myIP, ADMISSION_CONTACT_IP);
 	//server_topology = (struct Head_Node*)calloc(1, sizeof(struct Head_Node));
         log_init();
-        
+	        
         payloadBuf *packet;
 	int rc;
 	
@@ -145,6 +150,9 @@ int main() {
                 return 0;
 	}
 	printf("Socket Created\n");
+	
+	int so_reuseaddr = 1;
+	setsockopt(listenSocket,SOL_SOCKET,SO_REUSEADDR, &so_reuseaddr, sizeof so_reuseaddr);
 	
 	//Init the sockaddr structure..
 	memset(&myAddress, 0, sizeof(myAddress));
