@@ -109,7 +109,7 @@ int remove_from_list(struct Head_Node **head, char ID[ID_SIZE]) {
 		if((*head)->num_of_nodes == 0) {
 			(*head)->node = NULL;
 			free(*head);
-			printf("\n*Y*&^*&^*^*^*&^*&^ Making server_topology NULL (*&(*&(*&(*&(*&(*&(*\n");
+			//printf("\n*Y*&^*&^*^*^*&^*&^ Making server_topology NULL (*&(*&(*&(*&(*&(*&(*\n");
                 	*head = NULL;
 			return 0;
 		}

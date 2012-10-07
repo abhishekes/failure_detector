@@ -22,7 +22,7 @@
 
 #define ADMISSION_CONTACT_IP "192.17.11.33"	//This is not decided yet
 #define ADMISSION_CONTACT_PORT 2000		//This is not decided yet
-#define TCP_LISTEN_PORT 1800
+#define TCP_LISTEN_PORT 18000
 
 int node_init();
 RC_t node_exit(); 
