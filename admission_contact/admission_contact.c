@@ -105,7 +105,7 @@ RC_t getTopologyFromSomeNode() {
    	populate_ipAddrList(&buf, &total_nodes, &ipAddrList, &nodes_to_send_to, 0);
 	pthread_mutex_unlock(&node_list_mutex);
 	ptr = buf + 4;
-        ptr1 = mayBeIps; 
+        ptr1 = buf; 
         for (i =0; i < total_nodes; i++) {
         	memcpy(ptr1, ptr, 16);
                 ptr1 += 16;
