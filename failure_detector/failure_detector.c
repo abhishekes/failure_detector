@@ -22,12 +22,12 @@ int node_init() {
 	
         //strcpy(myIP,"24.7.199.32"); 
 	if ( getIpAddr() != RC_SUCCESS) {
-		//LOG(ERROR, "Failed to get my IP address %s.", "");	
+		LOG(ERROR, "Failed to get my IP address %s.", "");	
 	}
 	
 	if( (rc = get_topology()) == RC_SUCCESS) {
-		//LOG(INFO, "Get topology successful%s\n","");
-		printf("Get topology successful\n");
+		LOG(INFO, "Get topology successful%s\n","");
+		//printf("Get topology successful\n");
 
 		//if ( join_topology() == RC_SUCCESS ) {
 
@@ -38,7 +38,7 @@ int node_init() {
 			pthread_create(&receive_thread, NULL, heartbeat_receive, (void*)0);
 			pthread_create(&listen_thread, NULL, topology_update, (void*)0);
 			
-			printf("Threads created\n");	
+			//printf("Threads created\n");	
 			//I still need to tell others, if there are any, that I've joined. I've told to prev and next in the join_topology()
 			node = myself->next->next;
 			
@@ -62,11 +62,12 @@ int node_init() {
 	if (current_state == INIT && rc == RC_SUCCESS) {
 	       pthread_mutex_lock(&state_machine_mutex);	
                current_state = TOPOLOGY_FORMED;
-	       printf("\nChanging state to Topo formed\n");
+	       //printf("\nChanging state to Topo formed\n");
                pthread_mutex_unlock(&state_machine_mutex);
 	} else {
-		//LOG(ERROR, "State is other than INIT. Can't be%s\n", "");
-		printf("From here, returning RC_FAILURE\n");
+		LOG(ERROR, "State is other than INIT. Can't be .%s\n", "Press any key to continue");
+		getchar();
+                //printf("From here, returning RC_FAILURE\n");
                 return RC_FAILURE;
 	}
 
@@ -120,9 +121,9 @@ RC_t node_exit() {
 		printf("\nReceive thread cancelled\n");
 		
 		pthread_mutex_lock(&node_list_mutex);
-		timestamp = htonl(myself->prev->timestamp);
+		timestamp = htonl(myself->timestamp);
 		memcpy(myID, &timestamp, 4);
-		memcpy(myID + 4, myself->prev->IP, 16);
+		memcpy(myID + 4, myself->IP, 16);
 		pthread_mutex_unlock(&node_list_mutex);
 		
 		sendDeleteNotification(LEAVE_NOTIFICATION, myID, ttl);
@@ -142,6 +143,10 @@ RC_t node_exit() {
 		printf("\nCould not cancel receive thread\n");
 		return RC_FAILURE;
 	}
+        pthread_mutex_lock(&state_machine_mutex);	
+        current_state = INIT;
+	//printf("\nChanging state to Topo formed\n");
+        pthread_mutex_unlock(&state_machine_mutex);
 	
 	printf("\nDeleted all threads\n");
 	return RC_SUCCESS;

@@ -1,5 +1,5 @@
 #include "list.h"
-
+extern char myIP[16];
 struct Head_Node * init_head(struct Node* node) {
 	struct Head_Node * tmp = NULL;
 	
@@ -32,8 +32,9 @@ int add_to_list(struct Head_Node ** head, char ID[ID_SIZE]) {
 	int i = 0;
 	tmp = init_node(ID);
         uint32_t timestamp;  
-        printf("\nIn adding before, head : %lu, adding %s\n", (long)(*head), ID+4);
+        //printf("\nIn adding before, head : %lu, adding %s\n", (long)(*head), ID+4);
         //getchar();
+        LOG(INFO,"Adding node %s to the topology ", ID + 4);
         if ( *head == NULL ) {
 	        
 	       printf("\nIn adding 1\n");
@@ -112,7 +113,8 @@ int remove_from_list(struct Head_Node **head, char ID[ID_SIZE]) {
                 	*head = NULL;
 			return 0;
 		}
-	
+	        LOG(INFO,"Deleting node %s from the topology ", ID + 4);
+
 		DEBUG(("Remove_from_list : Node successfully removed."));
 		return 0;
 	}

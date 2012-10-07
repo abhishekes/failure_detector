@@ -102,7 +102,7 @@ int main() {
         getIpAddr();
 	
 	if( iHadCrashed() && ( getTopologyFromSomeNode() != RC_SUCCESS )) {
-		LOG(ERROR, "Problem at admission contact in booting upi. %s\n", "Exiting");
+		LOG(ERROR, "Problem at admission contact in booting up. %s\n", "Exiting");
 		printf("Error creating server socket. Dying ...\n");
                 return 0;
 	}	

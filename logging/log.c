@@ -1,4 +1,4 @@
-#include "tmp.h"
+#include "log.h"
  
 FILE *log_fp;
 char fileName[500] = {0};

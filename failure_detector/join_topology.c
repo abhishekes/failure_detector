@@ -11,7 +11,7 @@ RC_t join_topology() {
 	struct Node* next, prev;	
 	next = prev = NULL;
 	
-	//LOG(INFO, "Joining the topology now...");
+	LOG(INFO, "Joining the topology now %s", " ");
 	
 	if( myself != NULL ) { 		
 		next = myself->next;
@@ -19,7 +19,7 @@ RC_t join_topology() {
 	}
 	
 	if((next == NULL) || (prev == NULL)) {
-		//LOG(ERROR, "next or prev is NULL. It can't be. Check");
+		LOG(ERROR, "next or prev is NULL. It can't be. Check %s", "");
 		return RC_FAILURE;
 	}
 

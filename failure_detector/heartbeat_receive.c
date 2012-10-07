@@ -45,7 +45,7 @@ void* heartbeat_receive(void* t) {
 	
 	if (bind(recvFromSocket , (struct sockaddr *)&myAddr, sizeof(myAddr)) == -1 ) {
              printf("\n Failed to  bind socket for receiving heartbeat . Exiting....\n Press any key to continue  \n");
-             //getchar();
+             getchar();
              pthread_mutex_lock(&state_machine_mutex);
              current_state = INIT;
              pthread_mutex_unlock(&state_machine_mutex);
@@ -65,8 +65,8 @@ void* heartbeat_receive(void* t) {
 		pthread_testcancel();	
 		rv = poll(pollfds, 1, 3000);
 		//printf("Awake from POLL rv = %d, %lu \n", rv, pollfds[0].revents);
-                printf("Receive From IP : %s\n", (savedHeartbeat[0].ipAddr));
-                printf("MY IP : %s\n", (myself->IP));
+                //printf("Receive From IP : %s\n", (savedHeartbeat[0].ipAddr));
+                //printf("MY IP : %s\n", (myself->IP));
 		heartbeatNotReceived = 0;
 	
 		if(rv == 0) { //timeout has occurred. I did not receive 5 consecutive heartbeats from my recvfrom node.
@@ -80,7 +80,7 @@ void* heartbeat_receive(void* t) {
 			}
 			
 			pthread_mutex_lock(&timestamp_mutex);
-                        printf("Time Difference : %lu\n", (time(NULL) - savedHeartbeat[0].latestTimeStamp));
+                        DEBUG(("Time Difference : %lu\n", (time(NULL) - savedHeartbeat[0].latestTimeStamp)));
                         if(savedHeartbeat[0].latestTimeStamp !=0 
                            && (time(NULL) - savedHeartbeat[0].latestTimeStamp) > 2) {
 				heartbeatNotReceived = 1;

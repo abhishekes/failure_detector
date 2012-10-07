@@ -14,14 +14,15 @@ RC_t get_topology() {
 	payloadBuf *packet;
 	RC_t rc;
 
-	printf("Contacting admission control to join group\n");
+	LOG(INFO,"Contacting admission control to join group %s", " ");
 	
 	if((mSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-		printf("Unable to create socket. Dying...\n");
-		//exit(0);
+		printf("Unable to create socket. Dying.... Press any key to continue\n");
+	        getchar();	
+                //exit(0);
                 return RC_FAILURE;
 	}
-        printf("\nAfter socket\n");	
+        //printf("\nAfter socket\n");	
 	memset(&master, 0, sizeof(master));
 	master.sin_family 	= AF_INET;
 	master.sin_addr.s_addr 	= inet_addr(ADMISSION_CONTACT_IP);
@@ -32,7 +33,7 @@ RC_t get_topology() {
 	
 	if((connect(mSocket, (struct sockaddr *)&master, sizeof(master))) < 0) {
 		printf("Unable to connect with the Master. Dying...\nPress any key to continue");
-	        //getchar();
+	        getchar();
                 return RC_FAILURE;
         }
 		
@@ -41,7 +42,7 @@ RC_t get_topology() {
 	sendTopologyJoinRequest(mSocket);
                 
 	rc = message_decode(mSocket,&packet);
-	printf("\nAfter message decode, packet : %lu\n", (long)packet);	
+	//printf("\nAfter message decode, packet : %lu\n", (long)packet);	
 
         processPacket(mSocket, packet);
 	
@@ -72,13 +73,14 @@ RC_t get_topology() {
 		strcpy(savedHeartbeat[0].ipAddr, myself->prev->IP);
 		pthread_mutex_unlock(&timestamp_mutex);
 	} else { 
-		//LOG(ERROR, "My IP not found in server topology%s\n","");
-		printf("My IP node found in server_topology");
+		LOG(ERROR, "My IP not found in server topology%s\n","");
+		printf("Error. My IP node found in server_topology. Press any key to continue");
+                getchar();
 		return RC_FAILURE;	
 	}
 	//By this time, topology is formed and is present in the server_topology pointer
 	//Any changes in the topology will cause a change in the version number of the topology
 	
-	printf("Received topology from admission control\n");	
+	LOG(INFO,"Received topology from admission %s ", "contact");	
 	return RC_SUCCESS;
 }

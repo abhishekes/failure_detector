@@ -27,7 +27,7 @@ void processHeartbeatPayload(heartbeatPayload *payload)
     pthread_mutex_lock(&timestamp_mutex);
     for (i = 0; i < NUM_HEARTBEAT_NEIGHBOURS; i++) {
               //printf("Heartbeat Received Outside\n");
-              //LOG(INFO,"Received heartbeat from %s", payload->ip_addr); 
+              LOG(INFO,"Received heartbeat from %s", payload->ip_addr); 
               if (!(strcmp(savedHeartbeat[i].ipAddr, payload->ip_addr))) {
                   time(&savedHeartbeat[i].latestTimeStamp);
 		 // printf("Heartbeat Received from %s\n", payload->ip_addr);
@@ -55,10 +55,10 @@ void processNodeAddDeletePayload(addDeleteNodePayload *payload, int payload_size
     char IP[16];
     pthread_t thread;
     pthread_mutex_lock(&node_list_mutex);   
-    printf("\n********--------------------In AddDeletePayload-----------------------------************\n");
+    DEBUG(("\n********--------------------In AddDeletePayload-----------------------------************\n"));
 
     for(i=0;i<sizeof(*payload);i++) {	
-    	printf("%0x,", *(payload + i));
+    	DEBUG(("%0x,", *(payload + i)));
     }
     
     //getchar();
@@ -70,21 +70,21 @@ void processNodeAddDeletePayload(addDeleteNodePayload *payload, int payload_size
 	   
 
     for (i = 0; i < payload->numOfNodes; i++) {
-          printf("%%%%%%%%%%%%%% Received delete for %s ", payload->ID[0] + 4);
+          DEBUG(("Received delete for %s ", payload->ID[0] + 4));
 
           if (payload->flags & DELETE_PAYLOAD) {
            remove_from_list(&server_topology, payload->ID[i]);
   
           if (payload->flags & LEAVE_NOTIFICATION) {
-              //LOG(INFO, "Node %s is voluntarily leaving the group", payload->ID[i]);
+              LOG(INFO, "Node %s is voluntarily leaving the group", payload->ID[i]);
           }
           else if (payload->flags & LEAVE_NOTIFICATION) {
-              //LOG(INFO, "Node %s has failed. Removing its entry", payload->ID[i]);
+              LOG(INFO, "Node %s has failed. Removing its entry", payload->ID[i]);
  
                
           }
        }else if (payload->flags & ADD_PAYLOAD) {
-           //LOG(INFO, "Node %s is being added as a member in the group", payload->ID[i]);
+           LOG(INFO, "Node %s is being added as a member in the group", payload->ID[i]);
            add_to_list(&server_topology, payload->ID[i]);             
            pthread_mutex_lock(&timestamp_mutex);
            strcpy(savedHeartbeat[0].ipAddr, payload->ID[i] + 4); 
@@ -143,24 +143,26 @@ void processTopologyRequest(int socket, topologyRequestPayload *payload)
     pthread_mutex_lock(&node_list_mutex);
     if(server_topology ) {
         tmp = server_topology->node;
-    }       
+    }      
+    LOG(INFO, "Received topology request from  %s ", payload->ipAddr);
+
     for (index = 0; server_topology && index < server_topology->num_of_nodes; index++) {
-        printf("\n\nLooping through : %s , searching for :%s", tmp->IP, payload->ipAddr);
+        DEBUG(("\n\nLooping through : %s , searching for :%s", tmp->IP, payload->ipAddr));
         if (!memcmp(payload->ipAddr, tmp->IP, 15)) {
             found = tmp;
-            printf("\n3: Found ***********, IP : %s",payload->ipAddr);
+            //printf("\n3: Found ***********, IP : %s",payload->ipAddr);
      
             
         }
     }
-    printf("\n4\n");
+    //printf("\n4\n");
     if (payload->flags & ADD_NODE_REQUEST) {
         timestamp = htonl(payload->timestamp);
-        printf("\n5\n");
+        //printf("\n5\n");
 
         memcpy(ID, &(timestamp), sizeof(timestamp)); 
         memcpy(ID + 4, payload->ipAddr, 16);
-        printf("\n6\n");
+        //printf("\n6\n");
         add_to_list(&server_topology, ID); 
    }
    populate_ipAddrList(&buf, &total_nodes, &ipAddrList, &nodes_to_send_to, 0);
@@ -169,7 +171,7 @@ void processTopologyRequest(int socket, topologyRequestPayload *payload)
         sendTopologyResponse(socket, total_nodes , buf);  
    }
    if ((payload->flags & ADD_NODE_REQUEST) && (nodes_to_send_to)) {
-        printf("\n7 Nodes : %d, IP List : %s \n", server_topology->num_of_nodes, ipAddrList);
+        //printf("\n7 Nodes : %d, IP List : %s \n", server_topology->num_of_nodes, ipAddrList);
         sendAddNodePayload(ipAddrList, nodes_to_send_to , ID);
    }
    if (ipAddrList) {
@@ -178,7 +180,7 @@ void processTopologyRequest(int socket, topologyRequestPayload *payload)
    if (buf) {
         free(buf);
    }
-    printf("\n8\n");
+   //printf("\n8\n");
     
 }
 
@@ -206,8 +208,8 @@ RC_t getIpAddr()
             tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
             if (strncmp(addressBuffer, "127.0.0.1", INET_ADDRSTRLEN)) {
-                //LOG(INFO, "Node IP Address Obtained : %s", addressBuffer); 
-                printf("\nIP : %s\n", addressBuffer);
+                LOG(INFO, "Node IP Address Obtained : %s", addressBuffer); 
+                //printf("\nIP : %s\n", addressBuffer);
                 strcpy(myIP, addressBuffer);        
                 rc = RC_SUCCESS;
                 break;
@@ -238,17 +240,17 @@ void sendTopologyResponse(int socket, int numOfNodes, char *buf)
  
      addDeleteNodePayload *payloadBuf = malloc(size);
      payloadBuf->numOfNodes = numOfNodes;
-     printf("\n Sending here 1\n"); 
+     //printf("\n Sending here 1\n"); 
 
      payloadBuf->flags = ADD_PAYLOAD | COMPLETE_PAYLOAD;
      payloadBuf->ttl = 0;          //No need to propogate
      memcpy(payloadBuf->ID, buf, numOfNodes * ID_SIZE);
-     printf("\n Sending here 2\n"); 
+     //printf("\n Sending here 2\n"); 
      //getchar();
  
-    printf("\n Sending here 3\n"); 
+    //printf("\n Sending here 3\n"); 
     sendPayload(socket, MSG_ADD_DELETE_NODE, payloadBuf, size);
-    printf("\n Sending response \n"); 
+    //printf("\n Sending response \n"); 
     free(payloadBuf); 
 }
 
@@ -267,16 +269,16 @@ void sendTopologyJoinRequest(int socket)
     int size = (sizeof(topologyRequestPayload));
     time_t t;
     uint32_t timestamp = time(&t);
-    printf("\n\nSize = %d",size);
-    //LOG(INFO, "Sending Join Request to Admission %s:", "Contact");
-    printf("\nSending Join Request \n");
+    //printf("\n\nSize = %d",size);
+    LOG(INFO, "Sending Join Request to Admission %s:", "Contact");
+    //printf("\nSending Join Request \n");
     topologyRequestPayload *payloadBuf = 
                         calloc(1,sizeof(topologyRequestPayload));
    
     payloadBuf->flags = ADD_NODE_REQUEST;
     payloadBuf->timestamp = timestamp;
     memcpy(payloadBuf->ipAddr, myIP, 16);
-    printf("\nSending Join Request %s\n", myIP);
+    //printf("\nSending Join Request %s\n", myIP);
     sendPayload(socket, MSG_TOPOLOGY_REQUEST, payloadBuf, size);
     free(payloadBuf); 
 }
@@ -301,7 +303,7 @@ void sendAddNodePayload(char *ipAddrList, int numOfNodesToSend, char ID[ID_SIZE]
     pthread_t   thread[5];
     int threads_created = 0;
     addDeleteNodePayload *payloadBuf = calloc(1,sizeof(addDeleteNodePayload) + ID_SIZE);  
-    printf("\nIn here \n");
+    //printf("\nIn here \n");
     payloadBuf->numOfNodes = 1;
     payloadBuf->flags |= (ADD_PAYLOAD | DELTA_PAYLOAD);
     payloadBuf->ttl = 0;
@@ -311,7 +313,7 @@ void sendAddNodePayload(char *ipAddrList, int numOfNodesToSend, char ID[ID_SIZE]
         threads_created = 0;
         for (i=0; i<5 && index < numOfNodesToSend; i++, index ++, threads_created++) {
 	    
- 	    printf("Num nodes to send = %d", numOfNodesToSend);
+ 	    //printf("Num nodes to send = %d", numOfNodesToSend);
             //my_data[i].ip[15] = 0;
             my_data[i] = calloc(1, sizeof(thread_data) + sizeof(addDeleteNodePayload) + ID_SIZE);
             (*my_data[i]).payload = calloc(1, sizeof(addDeleteNodePayload) + ID_SIZE);
@@ -350,7 +352,7 @@ void sendDeleteNodePayload(char *ipAddrList, int numOfNodesToSend, char ID[ID_SI
     pthread_t   thread[5];
     int threads_created = 0;
     addDeleteNodePayload *payloadBuf = calloc(1,sizeof(addDeleteNodePayload) + ID_SIZE);  
-    printf("\nIn here \n");
+    //printf("\nIn here \n");
     payloadBuf->numOfNodes = 1;
     payloadBuf->flags |= (DELETE_PAYLOAD | DELTA_PAYLOAD | flags);
     payloadBuf->ttl = ttl;
@@ -360,7 +362,7 @@ void sendDeleteNodePayload(char *ipAddrList, int numOfNodesToSend, char ID[ID_SI
         threads_created = 0;
         for (i=0; i<5 && index < numOfNodesToSend; i++, index ++, threads_created++) {
 	    
- 	    printf("Num nodes to send = %d", numOfNodesToSend);
+ 	    //printf("Num nodes to send = %d", numOfNodesToSend);
             //my_data[i].ip[15] = 0;
             my_data[i] = calloc(1, sizeof(thread_data) + sizeof(addDeleteNodePayload) + ID_SIZE);
             (*my_data[i]).payload = calloc(1, sizeof(addDeleteNodePayload) + ID_SIZE);
@@ -378,39 +380,6 @@ void sendDeleteNodePayload(char *ipAddrList, int numOfNodesToSend, char ID[ID_SI
     free(payloadBuf);
 
 
-
-
-    /*char (*IP)[16];
-    IP = ipAddrList;
-    int index = 0;
-    int i;
-    thread_data *my_data[5];
-    pthread_t   thread[5];
-    int threads_created = 0;
-    addDeleteNodePayload *payloadBuf = calloc(1,sizeof(addDeleteNodePayload) + ID_SIZE);  
-    payloadBuf->numOfNodes = 1;
-    payloadBuf->flags |= (DELETE_PAYLOAD | DELTA_PAYLOAD);
-    payloadBuf->flags |= flags;
-    payloadBuf->ttl = ttl;
-    memcpy(payloadBuf->ID, ID, 20);
-    payloadBuf->ID[0][20] = 0;
-    while(index < numOfNodesToSend ) {
-        threads_created = 0;
-        for (i=0; i<5 && index < numOfNodesToSend; i++, index ++, threads_created++) {
-            //my_data[i].ip[15] = 0;
-            my_data[i] = calloc(1,sizeof(thread_data) + ID_SIZE);
-            (*my_data[i]).payload = calloc(1, sizeof(ID));  
-            memcpy((*my_data[i]).ip, IP, 16);
-            IP++;
-            (*my_data[i]).payload_size = sizeof(addDeleteNodePayload) + ID_SIZE;  
-            (*my_data[i]).msg_type = MSG_ADD_DELETE_NODE;
-            memcpy((*my_data[i]).payload, ID, ID_SIZE);
-            pthread_create(&thread[i], NULL, send_node_update_payload, (my_data[i])); 
-        }
-        for (i=0 ; i < threads_created; i++) {
-            pthread_join(thread[i],NULL);
-        } 
-    }*/
 }
 
 
@@ -465,5 +434,5 @@ void populate_ipAddrList(char **idList, int *noOfNodes, char **nodesToSendTo, in
          }       
           
      }
-     printf("\nPrinting ID List : %s, IP List : %s &&&&&&&&&&&&&&&&&&&& \n",(*idList)+4, *nodesToSendTo); 
+     //printf("\nPrinting ID List : %s, IP List : %s &&&&&&&&&&&&&&&&&&&& \n",(*idList)+4, *nodesToSendTo); 
 }

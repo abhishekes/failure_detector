@@ -71,7 +71,9 @@ void main()/*interact_with_user()*/
                         //display_membership_list();
                         break;
                    case 3:
-                        //node_exit();
+                        if (current_state == TOPOLOGY_FORMED) {
+                            node_exit();
+                        }
                         exit(0);
                         break;
                    default:
@@ -84,9 +86,9 @@ void main()/*interact_with_user()*/
        }while(valid == 0);
        //getchar();
        system("clear"); 
-    //}while((choice-'0') != 3);
-    }while(0); 
-    while(1);
+    }while((choice-'0') != 3);
+    //}while(0); 
+    //while(1);
 }
 
 
