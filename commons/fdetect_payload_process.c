@@ -70,10 +70,11 @@ void processNodeAddDeletePayload(addDeleteNodePayload *payload, int payload_size
 	   
 
     for (i = 0; i < payload->numOfNodes; i++) {
-          DEBUG(("Received delete for %s ", payload->ID[0] + 4));
+          DEBUG(("Received node update for %s ", payload->ID[0] + 4));
 
           if (payload->flags & DELETE_PAYLOAD) {
-           remove_from_list(&server_topology, payload->ID[i]);
+              printf("Node %s is being deleted from the group membership", payload->ID[0] + 4);
+              remove_from_list(&server_topology, payload->ID[i]);
   
           if (payload->flags & LEAVE_NOTIFICATION) {
               LOG(INFO, "Node %s is voluntarily leaving the group", payload->ID[i]);
@@ -85,6 +86,7 @@ void processNodeAddDeletePayload(addDeleteNodePayload *payload, int payload_size
           }
        }else if (payload->flags & ADD_PAYLOAD) {
            LOG(INFO, "Node %s is being added as a member in the group", payload->ID[i]);
+           printf("Node %s is being added as a member in the group", payload->ID[0] + 4);
            add_to_list(&server_topology, payload->ID[i]);             
            pthread_mutex_lock(&timestamp_mutex);
            strcpy(savedHeartbeat[0].ipAddr, payload->ID[i] + 4); 
