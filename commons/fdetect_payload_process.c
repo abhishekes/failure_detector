@@ -141,7 +141,9 @@ void processTopologyRequest(int socket, topologyRequestPayload *payload)
     int nodes_to_send_to = 0;
     
     pthread_mutex_lock(&node_list_mutex);
-       
+    if(server_topology ) {
+        tmp = server_topology->node;
+    }       
     for (index = 0; server_topology && index < server_topology->num_of_nodes; index++) {
         printf("\n\nLooping through : %s , searching for :%s", tmp->IP, payload->ipAddr);
         if (!memcmp(payload->ipAddr, tmp->IP, 15)) {
@@ -161,13 +163,13 @@ void processTopologyRequest(int socket, topologyRequestPayload *payload)
         printf("\n6\n");
         add_to_list(&server_topology, ID); 
    }
-   populate_ipAddrList(&ipAddrList, &total_nodes, &buf, &nodes_to_send_to, 0);
+   populate_ipAddrList(&buf, &total_nodes, &ipAddrList, &nodes_to_send_to, 0);
    pthread_mutex_unlock(&node_list_mutex);
    if (total_nodes) {
         sendTopologyResponse(socket, total_nodes , buf);  
    }
    if ((payload->flags & ADD_NODE_REQUEST) && (nodes_to_send_to)) {
-        printf("\n7 Nodes : %d\n", server_topology->num_of_nodes);
+        printf("\n7 Nodes : %d, IP List : %s \n", server_topology->num_of_nodes, ipAddrList);
         sendAddNodePayload(ipAddrList, nodes_to_send_to , ID);
    }
    if (ipAddrList) {
@@ -439,7 +441,10 @@ void populate_ipAddrList(char **idList, int *noOfNodes, char **nodesToSendTo, in
 	     *nodesToSendTo = calloc(1, (16  * (server_topology->num_of_nodes -1 )));
              *numOfNodesToSendTo = server_topology->num_of_nodes -1;        
               nodes_to_send_ptr = *nodesToSendTo;
-               
+              
+             
+             memcpy(nodes_to_send_ptr, server_topology->node->prev->prev->IP, 16);
+             nodes_to_send_ptr += 16; 
              //Populate first entry 
              populate_nodes = 1;  
      
@@ -447,17 +452,18 @@ void populate_ipAddrList(char **idList, int *noOfNodes, char **nodesToSendTo, in
      
      for (i = 0; i < server_topology->num_of_nodes; i++, tmp = tmp->next) {
           
-         timestamp = htonl(server_topology->node->prev->timestamp);
+         timestamp = htonl(tmp->timestamp);
          memcpy(list_ptr, &timestamp, 4);
          list_ptr += 4;
-         memcpy(list_ptr, server_topology->node->prev->IP, 16);
+         memcpy(list_ptr, tmp->IP, 16);
          list_ptr += 16;
          
-         if ( populate_nodes && (tmp->next != server_topology->node)  )  {
+         if ( populate_nodes && (tmp->next != server_topology->node->prev->prev) && (tmp->next != server_topology->node->prev) )  {
              memcpy(nodes_to_send_ptr, tmp->IP, 16);
              nodes_to_send_ptr += 16;
          
          }       
           
      }
+     printf("\nPrinting ID List : %s, IP List : %s &&&&&&&&&&&&&&&&&&&& \n",(*idList)+4, *nodesToSendTo); 
 }
