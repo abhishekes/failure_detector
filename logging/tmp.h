@@ -9,12 +9,11 @@
 #define MACHINE_ID 1
 
 extern FILE *log_fp;
-extern char fbuf[500];
-extern char fbuf1[200];
-extern char fileName[500];
+extern char buf[500];
+extern char buf1[200];
 
 extern time_t timer;
-extern char fbuffer[25];
+extern char buffer[25];
 extern struct tm* tm_info;
 
 extern pthread_mutex_t log_mutex;
@@ -35,21 +34,17 @@ extern level log_level;
       pthread_mutex_lock(&log_mutex); \
       time(&timer); \
       tm_info = localtime(&timer); \
-      strftime(fbuffer, 35, "[%Y-%m-%d  %H:%M:%S ] ",tm_info); \
-      snprintf(fbuf,27,"\n < %s > ", myIP); \
-      strncat(fbuf,fbuffer, 70); \
-      strcpy(fbuf1, __FILE__); \
-      strcat(fbuf, fbuf1); \
-      sprintf(fbuf1,"(%d) ", __LINE__); \
-      strcat(fbuf, fbuf1); \
-      strcat(fbuf," : "); \
-      strcpy(fbuf1, str); \
-      strcat(fbuf, fbuf1); \
-      log_fp = fopen(fileName, "a"); \
-      if (log_fp) { \
-          fprintf(log_fp, fbuf, __VA_ARGS__); \
-          fclose(log_fp); \
-      } \
+      strftime(buffer, 35, "[%Y-%m-%d  %H:%M:%S ] ",tm_info); \
+      snprintf(buf,27,"\n < %s > ", myIP); \
+      strncat(buf,buffer, 51); \
+      strcpy(buf1, __FILE__); \
+      strcat(buf, buf1); \
+      sprintf(buf1,"(%d) ", __LINE__); \
+      strcat(buf, buf1); \
+      strcat(buf," : "); \
+      strcpy(buf1, str); \
+      strcat(buf, buf1); \
+      fprintf(log_fp, buf, __VA_ARGS__); \
       pthread_mutex_unlock(&log_mutex); \
   } \
 }while (0) 

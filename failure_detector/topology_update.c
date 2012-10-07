@@ -16,7 +16,8 @@ void* topology_update(void* t) {
 
 	//Create a listening socket..
 	if((listenSocket = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-		printf("Error creating server socket. Dying ...\n");
+		printf("Error creating server socket. Dying .... Press any ket to continue\n");
+                getchar();
 		return 0;
 	}
 	
@@ -28,38 +29,41 @@ void* topology_update(void* t) {
 	
 	//Now bind the socket..
 	if((bind(listenSocket, (struct sockaddr *)&myAddress, sizeof(myAddress))) < 0) {
-		printf("Error binding socket. Dying...\n");		
+		printf("Error binding socket. Dying.... Press any key to continue\n");	
+                getchar();	
 		return 0;
 	}
 	
 	//Listen on the socket for incoming connections..	
 	if((listen(listenSocket, 10)) < 0) {
-		printf("Error listening on socket. Dying...\n");
+		printf("Error listening on socket. Dying...Press any key to continue\n");
+                getchar();
 		return 0;
 	}
 	
 	for(;;) {
 		pthread_testcancel();
 		if ((connectSocket = accept(listenSocket, (struct sockaddr*)&clientAddress, &clientSize)) < 0) {
-			printf("Error accepting connection. Dying...\n");
+			printf("Error accepting connection. Dying...\nPress any key to continue\n");
+                        getchar();
 			return 0;
 		} 
 		
-		printf("\n**********************************Client %d.%d.%d.%d connected******************************************\n", 
+		DEBUG(("\n**********************************Client %d.%d.%d.%d connected******************************************\n", 
 				(clientAddress.sin_addr.s_addr & 0xFF),  
 				(clientAddress.sin_addr.s_addr & 0xFF00) >> 8,  
 				(clientAddress.sin_addr.s_addr & 0xFF0000) >> 16,  
 				(clientAddress.sin_addr.s_addr & 0xFF000000) >> 24 
-			);
+			));
 
 		//A client has connected. 
 		//It will send me updates regarding the topology - either someone has joined or someone has left	
 		rc = message_decode(connectSocket, &packet);
-		printf("\n\nDid I succeed?  rc = %d\n\n", rc);
+		//printf("\n\nDid I succeed?  rc = %d\n\n", rc);
 
-		for(i = 0; i < packet->length; i++) {
-			printf("   ****  %d, ", *(packet + i));
-		}	
+		//for(i = 0; i < packet->length; i++) {
+		//	printf("   ****  %d, ", *(packet + i));
+		//}	
 		
 		processPacket(connectSocket,packet);
 		close(connectSocket);	

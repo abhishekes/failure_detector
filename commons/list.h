@@ -6,6 +6,7 @@
 #include <string.h>
 #include "message_type.h"
 #include <stdio.h>
+#include "../logging/log.h"
 #define NUM_HEARTBEAT_NEIGHBOURS 2
 
 struct Node {
