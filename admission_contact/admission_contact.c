@@ -2,7 +2,7 @@
 #define MAX_NUM_IPS 10
 #define IP_FILE_PATH "./IPs.txt"
 extern char myIp[16];
-
+extern pthread_mutex_t node_list_mutex;
 //Iterate over IPs file and get the topology
 RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
 
@@ -23,7 +23,22 @@ RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
 	
 	return RC_SUCCESS;
 }
+
+RC_t writeIPsToFile(char *ipList, uint16_t numIPs) {
+
+	FILE *fp = NULL;
+	fp = fopen(IP_FILE_PATH, "w");
+	if(fp == NULL) printf("\nNULL\n");
+	while((numIPs > 0) && (fp != NULL)) {
+		fprintf(fp, "IP: %s\n", ipList);
+		numIPs --;
+		ipList += 16;
+	}
+
+	fclose(fp);
 	
+	return RC_SUCCESS;
+}
 
 int iHadCrashed() {
 	return (!system("ls IPs.txt"));
@@ -65,8 +80,8 @@ RC_t getTopologyFromSomeNode() {
 	}
 
 	if(i == numIPs) {
-		printf("\nNo more IPs left to try. \n");
-		return RC_FAILURE;	
+		printf("\nNo more IPs left to try. And none of them connected.\n. Treating this as a fresh run\n");
+		return RC_FAILURE;
 	}
 	
 	topologyRequestPayload *topoPayload = calloc(1, sizeof(topologyRequestPayload));
@@ -77,6 +92,23 @@ RC_t getTopologyFromSomeNode() {
 	payloadBuf *packet;
 	rc = message_decode(sock, &packet);
 	if(rc = RC_SUCCESS) processPacket(sock, packet);
+	
+	
+	char *buf, *ipAddrList, *ptr, *ptr1;
+	int nodes_to_send_to, total_nodes;
+	buf = ipAddrList = NULL;
+	nodes_to_send_to = total_nodes = 0;
+	pthread_mutex_lock(&node_list_mutex);
+   	populate_ipAddrList(&buf, &total_nodes, &ipAddrList, &nodes_to_send_to, 0);
+	pthread_mutex_unlock(&node_list_mutex);
+	ptr = buf + 4;
+        ptr1 = buf; 
+        for (i =0; i < total_nodes; i++) {
+        	memcpy(ptr1, ptr, 16);
+                ptr1 += 16;
+                ptr += 16;
+        } 	
+	writeIPsToFile(buf, total_nodes);
 	
 	free(topoPayload);	
 	close(sock);
@@ -101,8 +133,6 @@ int main() {
         getIpAddr();
 	
 	if( iHadCrashed() && ( getTopologyFromSomeNode() != RC_SUCCESS )) {
-		printf("\nSomething went wrong\n");
-		return 0;
 	}	
 	
 	clientSize = sizeof(clientAddress);
@@ -160,11 +190,28 @@ int main() {
 		printf("After message decode\n");
 		if(rc == RC_SUCCESS)
 			processPacket(connectSocket, packet);	
-	
 		
-		//Now I need to tell other that a new node is about to join. 
-		//First tell the nodes neigbors	
+		char *buf, *ipAddrList, *ptr, *ptr1;
+		int nodes_to_send_to, total_nodes;
+		buf = ipAddrList = NULL;
+		nodes_to_send_to = total_nodes = 0;
+		
+		pthread_mutex_lock(&node_list_mutex);
+   		populate_ipAddrList(&buf, &total_nodes, &ipAddrList, &nodes_to_send_to, 0);
+		pthread_mutex_unlock(&node_list_mutex);
+	        
+		ptr = buf + 4;
+                ptr1 = buf; 
+                for (i =0; i < total_nodes; i++) {
+                    memcpy(ptr1, ptr, 16);
+                    ptr1 += 16;
+                    ptr += 16;
+                } 	
+		writeIPsToFile(buf, total_nodes);
+		
 		close(connectSocket);
+		if(buf) free(buf);
+		if(ipAddrList) free(ipAddrList);
 		
 	}	
 }
