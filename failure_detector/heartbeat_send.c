@@ -5,7 +5,7 @@ extern struct Node* myself;
 extern int topology_version;
 extern pthread_mutex_t node_list_mutex;
 int sendToSocket;
-
+extern char myIP[16];
 void* heartbeat_send(void* t) {
 	//I need to have access to the topology
 	//I need to select the person I am supposed to send the heartbeats to
