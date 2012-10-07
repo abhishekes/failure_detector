@@ -137,8 +137,8 @@ int sendPayloadUDP(int socket, messageType msgType, char* payload, uint16_t leng
     perform_marshalling(msgType, payload);
     memcpy(buf->payload, payload, length);
     //DEBUG(("\n Printing below 1:%0x , 2:%0x : 3 :%0x \n", buf->payload[0], buf->payload[1], buf->payload[2]));
-    puts(payload);
-    puts(buf->payload);
+    //puts(payload);
+    //puts(buf->payload);
     
     if((bytesSent = sendto(socket, buf, ntohs(buf->length), 0, dest_addr, sizeof(*dest_addr))) < 0)
     {

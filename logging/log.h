@@ -52,7 +52,7 @@ extern level log_level;
       } \
       pthread_mutex_unlock(&log_mutex); \
   } \
-}while (0) 
+}while(0) 
 
 void log_init();
 void log_exit();

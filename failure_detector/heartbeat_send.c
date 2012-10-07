@@ -4,6 +4,7 @@ extern struct Head_Node *server_topology;
 extern struct Node* myself;
 extern int topology_version;
 extern pthread_mutex_t node_list_mutex;
+int sendToSocket;
 
 void* heartbeat_send(void* t) {
 	//I need to have access to the topology
@@ -12,11 +13,9 @@ void* heartbeat_send(void* t) {
 
 	int my_version = 0;
 	char sendToIP[16] = {0};
-	int sendToSocket;
 	struct sockaddr_in sendToAddr;
 	heartbeatPayload *hbPayload = (heartbeatPayload*)malloc(sizeof(heartbeatPayload));
-	
-	sendToSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);		
+  	sendToSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);		
 
 	while(1) {
 		//if topology has changed, it might be that I need to now send to some other node.
@@ -45,5 +44,5 @@ void* heartbeat_send(void* t) {
 		pthread_testcancel();
 		usleep(400 * 1000); 	
 	}
-	pthread_exit(NULL);	
+        pthread_exit(NULL);	
 }

@@ -8,6 +8,7 @@ extern neighbourHeartbeat savedHeartbeat[NUM_HEARTBEAT_NEIGHBOURS];
 extern state_machine current_state;
 extern pthread_mutex_t state_machine_mutex;
 extern pthread_mutex_t time_stamp_mutex;
+int recvFromSocket = 0;
 
 void* heartbeat_receive(void* t) {
 
@@ -20,7 +21,6 @@ void* heartbeat_receive(void* t) {
 	int startup = 1;
         struct Node* recvFromNode = NULL;
 	struct Node* nodePtr;
-	int recvFromSocket;
 	struct sockaddr_in recvFromAddr, myAddr;
 	unsigned ttl = 4;
 	char recvFromNodeID[20];
@@ -36,7 +36,9 @@ void* heartbeat_receive(void* t) {
 	int numNodesToSend, i, j;
         char ID[ID_SIZE];
         uint32_t timestamp =0;		
-
+        if (recvFromSocket) {
+            close(recvFromSocket);
+        }  
 	recvFromSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);		
 	memset(&recvFromAddr, 0, sizeof(recvFromAddr));
 	myAddr.sin_family	= AF_INET;

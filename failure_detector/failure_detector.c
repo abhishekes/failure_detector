@@ -10,7 +10,6 @@ extern pthread_mutex_t state_machine_mutex;
 extern state_machine current_state;
 
 pthread_t send_thread, receive_thread, listen_thread;
-
 int node_init() {
 	server_topology = NULL;
 	myself = NULL;
@@ -26,7 +25,7 @@ int node_init() {
 	}
 	
 	if( (rc = get_topology()) == RC_SUCCESS) {
-		LOG(INFO, "Get topology successful%s\n","");
+		LOG(INFO, "Get topology successful%s\n"," ");
 		//printf("Get topology successful\n");
 
 		//if ( join_topology() == RC_SUCCESS ) {
@@ -37,7 +36,7 @@ int node_init() {
 			pthread_create(&send_thread, NULL, heartbeat_send, (void*)0);
 			pthread_create(&receive_thread, NULL, heartbeat_receive, (void*)0);
 			pthread_create(&listen_thread, NULL, topology_update, (void*)0);
-			
+		        	
 			//printf("Threads created\n");	
 			//I still need to tell others, if there are any, that I've joined. I've told to prev and next in the join_topology()
 			node = myself->next->next;
@@ -116,6 +115,13 @@ RC_t node_exit() {
 	char myID[20];
 	uint32_t timestamp;
 	int ttl = 4;
+	pthread_mutex_lock(&state_machine_mutex);	
+        if(current_state == INIT) {
+           printf("\nOperation Invalid in this state \n");
+           getchar();
+        }
+	//printf("\nChanging state to Topo formed\n");
+        pthread_mutex_unlock(&state_machine_mutex);
 		
 	if((pthread_cancel(receive_thread)) == 0) {
 		printf("\nReceive thread cancelled\n");
@@ -128,7 +134,7 @@ RC_t node_exit() {
 		
 		sendDeleteNotification(LEAVE_NOTIFICATION, myID, ttl);
 		
-		if((pthread_cancel(send_thread)) != 0) {
+		if((pthread_cancel(send_thread)) == 0) {
 			printf("\nSend thread cancelled\n");
 			
 		} else {

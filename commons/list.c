@@ -37,17 +37,17 @@ int add_to_list(struct Head_Node ** head, char ID[ID_SIZE]) {
         LOG(INFO,"Adding node %s to the topology ", ID + 4);
         if ( *head == NULL ) {
 	        
-	       printf("\nIn adding 1\n");
+	       //printf("\nIn adding 1\n");
         	
                 *head = init_head(tmp);
 		(*head)->num_of_nodes = 1;
                      
-                printf("\nReturning :%d\n", (*head)->num_of_nodes);
+                //printf("\nReturning :%d\n", (*head)->num_of_nodes);
 
                 return 0;
 	} else {
                 
-                printf("\nIn adding %lu \n",(long)(*head));
+                printf("\nAdding node %s to topology \n", ID+4);
                 for (i = 0 , tmp1 = (*head)->node; i < (*head)->num_of_nodes; i++, tmp1 = tmp1->next) {
                     if (!strncmp(tmp1->IP, ID+4, 16)) {
                         memcpy(&timestamp, ID, 4);
@@ -102,7 +102,7 @@ int remove_from_list(struct Head_Node **head, char ID[ID_SIZE]) {
 			(*head)->node = (*head)->node->next;
 		}
 		
-		printf("\n*********   &&&&  Supposed to delete %s &&&&&  *********\n", tmp->IP);	
+		printf("\nDeleting Node with IP %s\n", tmp->IP);	
                 free(tmp);
                 (*head)->num_of_nodes--;
 

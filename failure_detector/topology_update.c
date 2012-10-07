@@ -2,10 +2,10 @@
 
 extern struct Head_Node *server_topology;
 extern struct Node* myself;
-
+int listenSocket = 0;
 void* topology_update(void* t) {
 
-	int listenSocket, connectSocket, socketFlags, ret;
+	int connectSocket, socketFlags, ret;
 	socklen_t clientSize;
 	struct sockaddr_in myAddress, clientAddress;
 	int i,j, bytes, numBytes, pid;
@@ -13,7 +13,9 @@ void* topology_update(void* t) {
 	payloadBuf *packet;
 	int rc;
 	clientSize = sizeof(clientAddress);
-
+        if(listenSocket) {
+            close(listenSocket);
+        }
 	//Create a listening socket..
 	if((listenSocket = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("Error creating server socket. Dying .... Press any ket to continue\n");

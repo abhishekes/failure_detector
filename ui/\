@@ -61,12 +61,10 @@ void main()/*interact_with_user()*/
                        system("clear");
                        printf("\n\n Processing request. Please wait\n\n");
                        (*case1function)();
-                       getchar();
                        break;
                    case 2:
                         if (current_state == INIT) {
                              printf("\nOperation invalid in this state\n");
-                             getchar();
                         } else {
                             display_membership_list();
                         }
@@ -96,13 +94,13 @@ void main()/*interact_with_user()*/
 
 void display_membership_list()
 {
-     int i = 0;
+     int i;
      system("clear");
      struct Node *tmp;
      printf("\nNode IP Address\t Node Timestamp\n*****************************************************************\n");
      pthread_mutex_lock(&node_list_mutex);    
-     for (tmp = server_topology->node; i < server_topology->num_of_nodes ; i++, tmp=tmp->next) {
-         printf("%s\t %lu\n", tmp->IP, tmp->timestamp);
+     for (tmp = server_topology->node; tmp && tmp->next != server_topology->node; tmp++) {
+         printf("%s\t%lu\n", tmp->IP, tmp->timestamp);
      }
      pthread_mutex_unlock(&node_list_mutex); 
      printf("\nPlease press any key to continue ...\n");
