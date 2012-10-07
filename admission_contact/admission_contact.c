@@ -1,32 +1,87 @@
 #include "admission_contact.h"
-
-#define IP_FILE_PATH "./IPs"
+#define MAX_NUM_IPS 10
+#define IP_FILE_PATH "./IPs.txt"
 extern char myIp[16];
-/*
-//Iterate over IPs file and get the topology
-int main() {
 
-	struct Head_Node *topology = NULL;
-	struct Node *node = NULL;
+//Iterate over IPs file and get the topology
+RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
+
 	FILE *fp = NULL;
-	struct stat file_stat;
-	int version = 0;
-	time_t last_mtime = 0;
-	
-	while(1) {
-		
-		if(stat(IP_FILE_PATH, &file_stat) != -1) {
-			if(last_mtime <= file_stat.st_mtime) {
-				fp = fopen(IP_FILE_PATH, "r");
-				(void)parse_IPs(fp, &topology, &version);
-				fclose(fp);
-			}
-		}
-		sleep(1);
+	char line[50];
+	int i = 0;
+	fp = fopen(IP_FILE_PATH, "r");
+
+	*numIPs = 0;
+	while(fgets(line, sizeof(line), fp) != NULL) {
+		sscanf(line, "IP: %s", maybeIPs[i]);
+		i++;
 	}
-	return 0;
+
+	fclose(fp);
+	
+	*numIPs = i + 1;
+	
+	return RC_SUCCESS;
 }
-*/	
+	
+
+int iHadCrashed() {
+	return (!system("ls IPs.txt"));
+}
+
+RC_t getTopologyFromSomeNode() {
+	char maybeIPs[MAX_NUM_IPS][16];
+	uint16_t numIPs = 0;
+	int i, ret, sock;
+	RC_t rc;
+	
+	struct sockaddr_in nodeAddress;
+	
+	if(parseIPsFile(maybeIPs, &numIPs) != RC_SUCCESS) {
+		printf("\nError parsing IPs.txt\n");
+		return RC_FAILURE;
+	}
+	
+	i = 0; 
+	while(i < numIPs) {		
+		memset(&nodeAddress, 0, sizeof(nodeAddress));
+		nodeAddress.sin_family        = AF_INET;
+		nodeAddress.sin_addr.s_addr   = inet_addr(maybeIPs[i]);
+		nodeAddress.sin_port          = htons(TCP_LISTEN_PORT);
+	
+		if((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+			//LOG(ERROR, "IP : %s Unable to create TCP Socket. Dying...\n", IP);
+			printf("IP : %s Unable to create TCP Socket. Dying...\n");
+        	}
+
+		if((ret = connect(sock, (struct sockaddr *) &nodeAddress,   sizeof(nodeAddress))) < 0) { 
+   	     		printf("Unable to connected to %s. Trying next IP", maybeIPs[i]);
+			i++;
+			continue;
+		}else if(ret == 0){ 
+			printf("\nConnected to %s. Now requesting for topology\n",maybeIPs[i]);
+			break;
+		}
+	}
+
+	if(i == numIPs) {
+		printf("\nNo more IPs left to try. \n");
+		return RC_FAILURE;	
+	}
+	
+	topologyRequestPayload *topoPayload = calloc(1, sizeof(topologyRequestPayload));
+	int size = sizeof(topologyRequestPayload);
+	
+        sendPayload(sock, MSG_TOPOLOGY_REQUEST, topoPayload, size);
+	
+	payloadBuf *packet;
+	rc = message_decode(sock, &packet);
+	if(rc = RC_SUCCESS) processPacket(sock, packet);
+	
+	free(topoPayload);	
+	close(sock);
+	return RC_SUCCESS;
+}
 
 struct Head_Node *server_topology;	
 
@@ -37,12 +92,18 @@ int main() {
 	int i,j, bytes, numBytes, pid;
 	server_topology = NULL;
 
-	log_init();
-        getIpAddr();	
 	//server_topology = (struct Head_Node*)calloc(1, sizeof(struct Head_Node));
 	
 	payloadBuf *packet;
 	int rc;
+	
+	log_init();
+        getIpAddr();
+	
+	if( iHadCrashed() && ( getTopologyFromSomeNode() != RC_SUCCESS )) {
+		printf("\nSomething went wrong\n");
+		return 0;
+	}	
 	
 	clientSize = sizeof(clientAddress);
 

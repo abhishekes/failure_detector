@@ -16,5 +16,6 @@
 #include "../commons/list.h"
 #include "../commons/parse_file.h"
 #include "../logging/log.h"
+#include "../failure_detector/topology_update.h"
 #define MY_PORT  2000
 #endif
