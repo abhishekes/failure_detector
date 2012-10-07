@@ -65,6 +65,8 @@ void* heartbeat_receive(void* t) {
 		pthread_testcancel();	
 		rv = poll(pollfds, 1, 3000);
 		//printf("Awake from POLL rv = %d, %lu \n", rv, pollfds[0].revents);
+                printf("Receive From IP : %s\n", (savedHeartbeat[0].ipAddr));
+                printf("MY IP : %s\n", (myself->IP));
 		heartbeatNotReceived = 0;
 	
 		if(rv == 0) { //timeout has occurred. I did not receive 5 consecutive heartbeats from my recvfrom node.
@@ -78,7 +80,7 @@ void* heartbeat_receive(void* t) {
 			}
 			
 			pthread_mutex_lock(&timestamp_mutex);
-                        printf("Time Difference : %lu", (time(NULL) - savedHeartbeat[0].latestTimeStamp));
+                        printf("Time Difference : %lu\n", (time(NULL) - savedHeartbeat[0].latestTimeStamp));
                         if(savedHeartbeat[0].latestTimeStamp !=0 
                            && (time(NULL) - savedHeartbeat[0].latestTimeStamp) > 2) {
 				heartbeatNotReceived = 1;

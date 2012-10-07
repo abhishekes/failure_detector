@@ -13,8 +13,8 @@ void* send_node_update_payload(void *tdata)
         int retryCount = -1;
         int size = my_data->payload_size;
         int msg_type = my_data->msg_type;
-        printf("\nMessage Type = %0x\n", msg_type);
-        printf("\nSize = %0d\n", size);
+        printf("\nMessage Type = %0x*****************************\n", msg_type);
+        printf("\nSize = %0d\n***********************************", size);
 	
         int i = 0;
 
@@ -34,7 +34,7 @@ void* send_node_update_payload(void *tdata)
                 free(my_data);
                 pthread_exit(NULL);
         }
-        printf("IP : %s Unable to create TCP Socket. Dying...\n", IP);
+        printf("IP : %s Socket established...\n", IP);
         if((connect(sock, (struct sockaddr *) &nodeAddress,   sizeof(nodeAddress))) < 0) { 
                 //LOG(ERROR, "IP : %s Unable to connect with server %s . Dying ...\n", IP);
                 free(my_data->payload);

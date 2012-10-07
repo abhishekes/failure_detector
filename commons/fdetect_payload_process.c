@@ -442,12 +442,12 @@ void populate_ipAddrList(char **idList, int *noOfNodes, char **nodesToSendTo, in
              *numOfNodesToSendTo = server_topology->num_of_nodes -1;        
               nodes_to_send_ptr = *nodesToSendTo;
               
-             
-             memcpy(nodes_to_send_ptr, server_topology->node->prev->prev->IP, 16);
-             nodes_to_send_ptr += 16; 
+	     if(server_topology->num_of_nodes > 2)  { 
+       		   memcpy(nodes_to_send_ptr, server_topology->node->prev->prev->IP, 16);
+  	           nodes_to_send_ptr += 16; 
              //Populate first entry 
+             }
              populate_nodes = 1;  
-     
      } 
      
      for (i = 0; i < server_topology->num_of_nodes; i++, tmp = tmp->next) {
@@ -458,7 +458,7 @@ void populate_ipAddrList(char **idList, int *noOfNodes, char **nodesToSendTo, in
          memcpy(list_ptr, tmp->IP, 16);
          list_ptr += 16;
          
-         if ( populate_nodes && (tmp->next != server_topology->node->prev->prev) && (tmp->next != server_topology->node->prev) )  {
+         if ( populate_nodes && ((server_topology->num_of_nodes == 2) || (tmp != server_topology->node->prev->prev)) && (tmp != server_topology->node->prev) )  {
              memcpy(nodes_to_send_ptr, tmp->IP, 16);
              nodes_to_send_ptr += 16;
          

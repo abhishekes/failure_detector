@@ -78,20 +78,31 @@ int sendDeleteNotification(uint8_t reason, char nodeID[20], int ttl) {
 	char *IPList, *ptr;
 	int i,j;
 	struct Node* nodePtr;
-		
+	
+			
 	sendDeleteNodePayload(ADMISSION_CONTACT_IP, 1, nodeID, 0, reason);
 
-	numNodesToSend = server_topology->num_of_nodes / ttl;
+	numNodesToSend = server_topology->num_of_nodes - 2;
+	if ( numNodesToSend < ttl) 
+		ttl = numNodesToSend - 1;
+	else 
+		numNodesToSend = numNodesToSend / ttl;
+
 	if (numNodesToSend >= 1) {
 		IPList = (char*)malloc(numNodesToSend * 16);
 		memset(IPList, 0, numNodesToSend * 16);
 		ptr = IPList;
-		nodePtr = myself->prev->prev;
+
+		if(reason == NODE_FAILURE) 
+			nodePtr = myself->prev->prev;
+		else if(reason == LEAVE_NOTIFICATION)
+			nodePtr = myself->prev;
+
 		pthread_mutex_lock(&node_list_mutex);
 		for(i=0;i<numNodesToSend;i++) {
 			strcpy(ptr, nodePtr->IP);
 			ptr += 16;
-			for(j=0;j<ttl;j++) nodePtr = nodePtr->prev;
+			for(j = 0; j < (ttl+1); j++) nodePtr = nodePtr->prev;
 		}
 		pthread_mutex_unlock(&node_list_mutex);
 		sendDeleteNodePayload(IPList,numNodesToSend, nodeID, ttl, reason);

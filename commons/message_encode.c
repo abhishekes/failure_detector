@@ -100,7 +100,7 @@ int sendPayload(int socket, messageType msgType, char* payload, uint16_t length)
     
     int i;
     for(i=0;i<length;i++) {
-      DEBUG(("%d,",*((char*)(buf + i))));
+      DEBUG(("%c,",*((char*)(buf + i))));
     }
     while (bytesSent < sizeof(payloadBuf) + length) {
         rc = write(socket, (buf+bytesSent), (sizeof(payloadBuf) + length) - bytesSent);
