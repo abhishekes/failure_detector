@@ -1,7 +1,7 @@
 #include "admission_contact.h"
 #define MAX_NUM_IPS 10
 #define IP_FILE_PATH "./IPs.txt"
-extern char myIp[16];
+extern char myIP[16];
 extern pthread_mutex_t node_list_mutex;
 //Iterate over IPs file and get the topology
 RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
@@ -141,7 +141,7 @@ int main() {
 	//Create a listening socket..
 	if((listenSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("Error creating server socket. Dying ...\n");
-		LOG(ERROR, "Problem at admission contact in booting upi. %s\n", "Exiting");
+		LOG(ERROR, "Problem at admission contact in booting up. %s\n", "Exiting");
                 return 0;
 	}
 	printf("Socket Created\n");
