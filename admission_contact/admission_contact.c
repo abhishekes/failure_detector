@@ -1,7 +1,7 @@
 #include "admission_contact.h"
 #define MAX_NUM_IPS 10
 #define IP_FILE_PATH "./IPs.txt"
-extern char myIp[16];
+extern char myIP[16];
 
 //Iterate over IPs file and get the topology
 RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
@@ -91,18 +91,20 @@ int main() {
 	struct sockaddr_in myAddress, clientAddress;
 	int i,j, bytes, numBytes, pid;
 	server_topology = NULL;
-
+        strcpy(myIP, ADMISSION_CONTACT_IP);
 	//server_topology = (struct Head_Node*)calloc(1, sizeof(struct Head_Node));
-	
-	payloadBuf *packet;
+        log_init();
+        
+        payloadBuf *packet;
 	int rc;
 	
 	log_init();
         getIpAddr();
 	
 	if( iHadCrashed() && ( getTopologyFromSomeNode() != RC_SUCCESS )) {
-		printf("\nSomething went wrong\n");
-		return 0;
+		LOG(ERROR, "Problem at admission contact in booting upi. %s\n", "Exiting");
+		printf("Error creating server socket. Dying ...\n");
+                return 0;
 	}	
 	
 	clientSize = sizeof(clientAddress);
@@ -110,7 +112,8 @@ int main() {
 	//Create a listening socket..
 	if((listenSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("Error creating server socket. Dying ...\n");
-		return 0;
+		LOG(ERROR, "Problem at admission contact in booting upi. %s\n", "Exiting");
+                return 0;
 	}
 	printf("Socket Created\n");
 	
@@ -127,7 +130,7 @@ int main() {
 		return 0;
 	}
 
-	printf("Bind Created\n");
+	printf("Socket bound to IP address. \n");
 	
 	//Listen on the socket for incoming connections..	
 	if((listen(listenSocket, 10)) < 0) {
@@ -135,7 +138,7 @@ int main() {
 		return 0;
 	}
 	
-	printf("Now listening\n");
+	printf("******************************** Ready to admit new nodes into the network **************************\n");
 	for(;;) {
 		if ((connectSocket = accept(listenSocket, (struct sockaddr*)&clientAddress, &clientSize)) < 0) {
 			printf("Error accepting connection. Dying...\n");
