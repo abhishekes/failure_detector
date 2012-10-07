@@ -108,8 +108,8 @@ RC_t getTopologyFromSomeNode() {
         ptr1 = buf; 
         for (i =0; i < total_nodes; i++) {
         	memcpy(ptr1, ptr, 16);
-                ptr1 += 16;
-                ptr += 16;
+                ptr1 += 20;
+                ptr += 20;
         } 	
 	writeIPsToFile(buf, total_nodes);
 	
