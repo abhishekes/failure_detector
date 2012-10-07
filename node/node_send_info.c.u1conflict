@@ -1,0 +1,36 @@
+#include "node_info.h"
+
+void send_node_update_payload(tdata *data)
+{
+   
+    
+        struct threadData *myData = (struct threadData *)tdata;
+        struct sockaddr_in serverAddress;
+        char *IP = myData->ip;
+        int sock;
+        int rc = FAILURE;
+        int retryCount = -1;
+        payloadBuf *packet;
+        memset(&serverAddress, 0, sizeof(serverAddress));
+        serverAddress.sin_family        = AF_INET;
+        serverAddress.sin_addr.s_addr   = inet_addr(IP);
+        serverAddress.sin_port          = htons(SERVER_PORT);
+
+        if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+                printf("Thread %d: Unable to create TCP Socket. Dying...\n", myID);
+                myData->statusFlag = (FAILURE | SOCKET_CREATION_FAILURE);
+                pthread_exit(NULL);
+        }
+                if((connect(sock, (struct sockaddr *) &serverAddress,   sizeof(serverAddress))) < 0) { 
+                printf("Thread %d: Unable to connect with server %s . Dying ...\n", myID, serverIP);
+                myData->statusFlag = (FAILURE | SOCKET_CONNECT_FAILURE);
+                pthread_exit(NULL);
+        }
+        DEBUG(("Thread  %d : Connection Established\n\n", myID));
+        //We are now connected. Let the send receive begin... 
+        do {
+            DEBUG(("\nTrying to send\n"));
+            rc = sendScriptFile(sock, myData->command);
+            retryCount++;
+        }while(((rc != RC_SUCCESS) && (retryCount < 5)) && (rc != RC_SOCKET_WRITE_FAILURE));
+
