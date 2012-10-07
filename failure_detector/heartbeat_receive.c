@@ -45,6 +45,9 @@ void* heartbeat_receive(void* t) {
 	myAddr.sin_port  	= htons(HEARTBEAT_RECV_PORT);
 	myAddr.sin_addr.s_addr	= INADDR_ANY;
 	
+	int so_reuseaddr = 1;
+	setsockopt(recvFromSocket,SOL_SOCKET,SO_REUSEADDR, &so_reuseaddr, sizeof so_reuseaddr);
+	
 	if (bind(recvFromSocket , (struct sockaddr *)&myAddr, sizeof(myAddr)) == -1 ) {
              printf("\n Failed to  bind socket for receiving heartbeat . Exiting....\n Press any key to continue  \n");
              getchar();

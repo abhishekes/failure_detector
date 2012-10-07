@@ -23,6 +23,9 @@ void* topology_update(void* t) {
 		return 0;
 	}
 	
+	int so_reuseaddr = 1;
+	setsockopt(listenSocket,SOL_SOCKET,SO_REUSEADDR, &so_reuseaddr, sizeof so_reuseaddr);
+	
 	//Init the sockaddr structure..
 	memset(&myAddress, 0, sizeof(myAddress));
 	myAddress.sin_family	  = AF_INET;
