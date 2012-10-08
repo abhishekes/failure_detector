@@ -22,7 +22,7 @@ RC_t parseIPsFile(char maybeIPs[MAX_NUM_IPS][16], uint16_t *numIPs) {
 
 	fclose(fp);
 	
-	*numIPs = i + 1;
+	*numIPs = i;
 	
 	return RC_SUCCESS;
 }
@@ -73,7 +73,7 @@ RC_t getTopologyFromSomeNode() {
         	}
 
 		if((ret = connect(sock, (struct sockaddr *) &nodeAddress,   sizeof(nodeAddress))) < 0) { 
-   	     		printf("Unable to connected to %s. Trying next IP", maybeIPs[i]);
+   	     		printf("Unable to connect to %s. Trying next IP", maybeIPs[i]);
 			i++;
 			continue;
 		}else if(ret == 0){ 
